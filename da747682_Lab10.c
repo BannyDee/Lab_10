@@ -120,7 +120,6 @@ int main()
 	struct Trie *pTrie = createTrie();
 	for (int i=0;i<numWords;i++)
 	{
-        printf("%d\n", i);
 		insert(pTrie, inWords[i]);
 	}
 	// parse lineby line, and insert each word to the trie data structure
