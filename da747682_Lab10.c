@@ -3,86 +3,113 @@
 #include <string.h>
 
 // Trie structure
-struct Trie
-{	
-    int count;
+struct TrieBranch{	
     struct Trie *children[26];
+    int count;
 };
+struct Trie{
+    struct TrieBranch* root;
+};
+struct TrieBranch* nodeInit(){
+    struct TrieBranch* new = (struct TrieNode*)malloc(sizeof(struct TrieBranch));
+    if (new != NULL)
+    {
+        new->count = 0;
+        for(int i = 0; i < 26; i++){
+            new->children[i] = NULL;
+        }
+    }
+    return new;
+}
+// Initializes a trie structure
+struct TrieBranch* createTrie()
+{
+     struct Trie* myTree = (struct Trie*)malloc(sizeof(struct Trie));
+     if(myTree){
+        myTree->root = nodeInit(); 
+    }
+    myTree->root->count = 0;
+    return myTree;
+}
 // Inserts the word to the trie structure
 void insert(struct Trie *pTrie, char *word)
 {
-    struct Trie* temp = pTrie;
-    for(int i = 0;word[i] != '\0';i++){
+    if((pTrie == NULL)||(word == NULL)){
+        return;
+    }
+    struct TrieBranch* temp = pTrie->root;
+    for(int i = 0;word[i];i++){
         int j = word[i] - 'a';
         if(temp->children[j] == NULL){
-            temp->children[j] = createTrie();
+            temp->children[j] = nodeInit();
         }
         temp = temp->children[j];
     }
-    temp->count++;
+    temp->count += 1;
 }
 
 // computes the number of occurances of the word
-int numberOfOccurances(struct Trie *pTrie, char *word)
+int numberOfOccurances(struct Trie* pTrie, char *word)
 {
-    struct Trie* temp = pTrie;
-    for(int i = 0; word[i] != '\0'; i++){
+    if((pTrie == NULL)||(word == NULL)){
+        return 0;
+    }
+    int i = 0;
+    struct TrieBranch* temp = pTrie->root;
+    while(word[i]){
         int j = word[i] - 'a';
         if(temp->children[j] == NULL){
             return 0;
         }
         temp = temp->children[j];
+        ++i;
     }
     return temp->count;
 }
 
 // deallocate the trie structure
-struct Trie *deallocateTrie(struct Trie *pTrie)
+struct Trie *deallocateTrie(struct Trie* pTrie)
 {
-    if(pTrie != NULL){
-        for(int i = 0; i < 26;i++){
-            if(pTrie->children[i] != NULL){
-                deallocateTrie(pTrie->children[i]);
+    if(pTrie == NULL){
+        return 0;
+    }
+    if(pTrie->root != NULL){
+        for(int i = 0; i < 26; i++){
+            if(pTrie->root->children[i] != NULL){
+                deallocateTrie(pTrie->root->children[i]);
             }
         }
-        free(pTrie);
+        free(pTrie->root);
     }
+    free(pTrie);
+    return 0;
 }
 
-// Initializes a trie structure
-struct Trie* createTrie()
-{
-     struct Trie* pNode = (struct Trie*)malloc(sizeof(struct Trie));
-    for(int i = 0; i < 26;i++){
-        pNode->children[i] = NULL;
-    }
-    pNode->count = 0;
-    return pNode;
-}
+
 
 // this function will return number of words in the dictionary,
 // and read all the words in the dictionary to the structure words
 int readDictionary(char *filename, char **pInWords)
 {
-    FILE* fp = fopen(filename,"r");
-    if(fp == NULL){
-        printf("Unable to open the file!\n");
-        exit(1);
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL){ 
+        printf("Unable to Open File");
+        return 0;
     }
-    int num;
+    int num = 0;
     fscanf(fp, "%d",&num);
-    for(int i = 0;i < num;i++){
+    for(int i = 0; i < num;i++){
         pInWords[i] = (char*)malloc(256 * sizeof(char));
-        fscanf(fp,"%s",pInWords[i]);
+        fscanf(fp, "%s", pInWords[i]);
     }
     fclose(fp);
     return num;
 }
 
-int main(void)
+int main()
 {
 	char *inWords[256];
-	
+    printf("What\n");
 	//read the number of the words in the dictionary
 	int numWords = readDictionary("dictionary.txt", inWords);
 	for (int i=0;i<numWords;++i)
@@ -93,12 +120,12 @@ int main(void)
 	struct Trie *pTrie = createTrie();
 	for (int i=0;i<numWords;i++)
 	{
+        printf("%d\n", i);
 		insert(pTrie, inWords[i]);
 	}
 	// parse lineby line, and insert each word to the trie data structure
-	char *pWords[][256] = {"notaword", "ucf", "no", "note", "corg"};
-	for (int i=0;i<5;i++)
-	{
+	char *pWords[] = {"notaword", "ucf", "no", "note", "corg"};
+	for (int i=0;i<5;i++){
 		printf("\t%s : %d\n", pWords[i], numberOfOccurances(pTrie, pWords[i]));
 	}
 	pTrie = deallocateTrie(pTrie);
